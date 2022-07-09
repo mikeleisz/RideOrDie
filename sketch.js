@@ -25,7 +25,7 @@ var cameraDepth = null;
 var drawDistance = 300;
 var playerX = 0;
 var playerZ = null;
-var fogDensity = 5;
+var fogDensity = 30;
 var pos = 0;
 var spd = 10000;
 var maxSpeed = segmentLength/step;
@@ -143,6 +143,8 @@ function updateGame() {
   else keySlower = false;
   
   var playerSegment = findSegment(pos + playerZ);
+  var playerW       = SPRITES.PLAYER_STRAIGHT.w * SPRITES.SCALE;
+
   var speedPercent = spd/maxSpeed;
   var dx = dt * 2 * speedPercent;
   
@@ -166,9 +168,25 @@ function updateGame() {
   else
     spd = accelerate(spd, decel, dt);
   
-  if (((playerX < -1 || playerX > 1)) && (spd > offRoadLimit))
-    spd = accelerate(spd, offRoadDecel, dt);
-  
+  if (playerX < -1 || playerX > 1) {
+
+    if (spd > offRoadLimit) {
+      spd = accelerate(spd, offRoadDecel, dt);
+    }
+
+    var sprite, spriteW;
+
+    for(var i = 0 ; i < playerSegment.sprites.length ; i++) {
+      sprite  = playerSegment.sprites[i];
+      spriteW = sprite.source.w * SPRITES.SCALE;
+      if (overlap(playerX, playerW, sprite.offset + spriteW/2 * (sprite.offset > 0 ? 1 : -1), spriteW)) {
+        speed = maxSpeed/5;
+        position = increase(playerSegment.p1.world.z, -playerZ, trackLength); // stop in front of sprite (at front of segment)
+        break;
+      }
+    }
+  }
+
   playerX = limitValue(playerX, -2, 2);
   spd = limitValue(spd, 0, maxSpeed);
 }
@@ -208,6 +226,7 @@ function render() {
     segment = segments[(baseSegment.index + i) % segments.length];
     segment.looped = segment.index < baseSegment.index;
     segment.fog    = exponentialFog(i/drawDistance, fogDensity);
+    segment.clip   = maxY;
     
     project(segment.p1, (playerX * roadWidth) - x, playerY + cameraHeight, pos - (segment.looped ? trackLength : 0), cameraDepth, gameWidth, gameHeight, roadWidth);
     project(segment.p2, (playerX * roadWidth) - x - dx, playerY + cameraHeight, pos - (segment.looped ? trackLength : 0), cameraDepth, gameWidth, gameHeight, roadWidth);
@@ -231,16 +250,30 @@ function render() {
     
     maxY = segment.p2.screen.y;
   }
-  
-  renderPlayer( gameWidth, 
-                gameHeight, 
-                resolution, 
-                roadWidth, 
-                sprites, 
-                spd/maxSpeed, 
-                cameraDepth/playerZ,
-                gameWidth/2,
-                (gameHeight/2) - (cameraDepth/playerZ * interpolate(playerSegment.p1.camera.y, playerSegment.p2.camera.y, playerPercent) * gameHeight/2),
-                spd * (keyLeft ? -1 : keyRight ? 1 : 0),
-                playerSegment.p2.world.y - playerSegment.p1.world.y);
+
+  for (var i = drawDistance - 1; i > 0; i--) {
+    segment = segments[(baseSegment.index + i) % segments.length];
+
+    for(var j = 0 ; j < segment.sprites.length ; j++) {
+      sprite      = segment.sprites[j];
+      spriteScale = segment.p1.screen.scale;
+      spriteX     = segment.p1.screen.x + (spriteScale * sprite.offset * roadWidth * gameWidth/2);
+      spriteY     = segment.p1.screen.y;
+      renderSprite(gameWidth, gameHeight, resolution, roadWidth, sprites, sprite.source, spriteScale, spriteX, spriteY, (sprite.offset < 0 ? -1 : 0), -1, segment.clip);
+    }
+
+    if (segment == playerSegment) {
+      renderPlayer( gameWidth, 
+        gameHeight, 
+        resolution, 
+        roadWidth, 
+        sprites, 
+        spd/maxSpeed, 
+        cameraDepth/playerZ,
+        gameWidth/2,
+        (gameHeight/2) - (cameraDepth/playerZ * interpolate(playerSegment.p1.camera.y, playerSegment.p2.camera.y, playerPercent) * gameHeight/2),
+        spd * (keyLeft ? -1 : keyRight ? 1 : 0),
+        playerSegment.p2.world.y - playerSegment.p1.world.y);
+    }
+  }
 }

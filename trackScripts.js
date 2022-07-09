@@ -1,10 +1,6 @@
-function resetRoad() {
-    segments = [];
-    
+function createTrack() {
     addStraight(ROAD.LENGTH.SHORT/2);
     addHill(ROAD.LENGTH.SHORT, ROAD.HILL.LOW);
-    addHill(ROAD.LENGTH.SHORT, ROAD.HILL.MEDIUM);
-    addHill(ROAD.LENGTH.SHORT, ROAD.HILL.HIGH);
     addLowRollingHills();
     addCurve(ROAD.LENGTH.MEDIUM, ROAD.CURVE.MEDIUM, ROAD.HILL.LOW);
     addLowRollingHills();
@@ -16,12 +12,22 @@ function resetRoad() {
     addHill(ROAD.LENGTH.LONG, -ROAD.HILL.MEDIUM);
     addStraight();
     addDownhillToEnd();
+}
+
+function resetRoad() {
+    segments = [];
     
+    createTrack();
+    
+    //commented lines below add finish and start line color to segments
+
+    /*
     segments[findSegment(playerZ).index + 2].color = COLORS.START;
     segments[findSegment(playerZ).index + 3].color = COLORS.START;
     
     for(var i = 0 ; i < rumbleLength ; i++) 
       segments[segments.length-1-i].color = COLORS.FINISH;
+    */
     
     trackLength = segments.length * segmentLength;
   }
@@ -33,8 +39,16 @@ function resetRoad() {
       p1: {world: {y: lastY(), z:  n    * segmentLength}, camera: {}, screen: {}},
       p2: {world: {y:       y, z: (n+1) * segmentLength}, camera: {}, screen: {}},
       curve: curve,
-      color: floor(n/rumbleLength)%2 ? COLORS.DARK : COLORS.LIGHT
+      color: floor(n/rumbleLength)%2 ? COLORS.DARK : COLORS.LIGHT,
+      sprites: []
     });
+
+    if (random() < 0.05) addSprite(n, SPRITES.TREE1, -1);
+    if (random() < 0.05) addSprite(n, SPRITES.TREE1,  1);
+  }
+
+  function addSprite(n, sprite, offset) {
+    segments[n].sprites.push({ source: sprite, offset: offset });
   }
   
   function addStraight(num) {
