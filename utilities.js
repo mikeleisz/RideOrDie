@@ -25,3 +25,12 @@ function limitValue(value, mini, maxi) {
 function randomChoice(options) {
     return options[round(random(0, options.length-1))]; 
 }
+
+function overlap(x1, w1, x2, w2, percent) {
+    var half = (percent || 1)/2;
+    var min1 = x1 - (w1*half);
+    var max1 = x1 + (w1*half);
+    var min2 = x2 - (w2*half);
+    var max2 = x2 + (w2*half);
+    return ! ((max1 < min2) || (min1 > max2));
+}

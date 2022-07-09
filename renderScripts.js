@@ -106,7 +106,7 @@ function polygon(x1, y1, x2, y2, x3, y3, x4, y4, col) {
 }
 
 function exponentialFog(distance, density) {
-  return 1 / pow(2.71828, (distance * distance * density));
+  return 1 / pow(Math.E, (distance * distance * density));
 }
 
 function fog(x, y, w, h, f) {

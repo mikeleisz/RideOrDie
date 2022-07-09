@@ -1,10 +1,6 @@
-function resetRoad() {
-  segments.empty();
-
+function createTrack() {
   addStraight(ROAD.LENGTH.SHORT / 2);
   // addHill(ROAD.LENGTH.SHORT, ROAD.HILL.LOW);
-  // addHill(ROAD.LENGTH.SHORT, ROAD.HILL.MEDIUM);
-  // addHill(ROAD.LENGTH.SHORT, ROAD.HILL.HIGH);
   // addLowRollingHills();
   // addCurve(ROAD.LENGTH.MEDIUM, ROAD.CURVE.MEDIUM, ROAD.HILL.LOW);
   // addLowRollingHills();
@@ -16,12 +12,22 @@ function resetRoad() {
   // addHill(ROAD.LENGTH.LONG, -ROAD.HILL.MEDIUM);
   // addStraight();
   // addDownhillToEnd();
+}
 
-  // segments[findSegment(playerZ).index + 2].color = COLORS.START;
-  // segments[findSegment(playerZ).index + 3].color = COLORS.START;
-  //
-  // for(var i = 0 ; i < rumbleLength ; i++)
-  //   segments[segments.length-1-i].color = COLORS.FINISH;
+function resetRoad() {
+  segments.empty();
+
+  createTrack();
+
+  //commented lines below add finish and start line color to segments
+
+  /*
+    segments[findSegment(playerZ).index + 2].color = COLORS.START;
+    segments[findSegment(playerZ).index + 3].color = COLORS.START;
+    
+    for(var i = 0 ; i < rumbleLength ; i++) 
+      segments[segments.length-1-i].color = COLORS.FINISH;
+    */
 
   trackLength = segments.length * segmentLength;
 }
@@ -34,7 +40,15 @@ function addSegment(curve, y) {
     p2: { world: { y: y, z: (n + 1) * segmentLength }, camera: {}, screen: {} },
     curve: curve,
     color: floor(n / rumbleLength) % 2 ? COLORS.DARK : COLORS.LIGHT,
+    sprites: [],
   });
+
+  if (random() < 0.05) addSprite(n, SPRITES.TREE1, -1);
+  if (random() < 0.05) addSprite(n, SPRITES.TREE1, 1);
+}
+
+function addSprite(n, sprite, offset) {
+  segments.get(n).sprites.push({ source: sprite, offset: offset });
 }
 
 function addStraight(num) {
@@ -164,7 +178,6 @@ const choose = (arr) => arr[Math.floor(Math.random() * arr.length)];
 function updateTrackIfNeeded() {
   const playerSegment = findSegment(pos);
 
-  console.log(this.segments.data.length);
   if (segments.length - playerSegment.index > drawDistance) {
     return;
   }
