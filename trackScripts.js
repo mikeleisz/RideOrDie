@@ -1,5 +1,5 @@
 function resetRoad() {
-  segments = [];
+  segments.empty();
 
   addStraight(ROAD.LENGTH.SHORT / 2);
   // addHill(ROAD.LENGTH.SHORT, ROAD.HILL.LOW);
@@ -128,11 +128,13 @@ function addRoad(enter, hold, leave, curve, y) {
 }
 
 function findSegment(z) {
-  return segments[floor(z / segmentLength) % segments.length];
+  return segments.get(floor(z / segmentLength));
 }
 
 function lastY() {
-  return segments.length == 0 ? 0 : segments[segments.length - 1].p2.world.y;
+  return segments.length == 0
+    ? 0
+    : segments.get(segments.length - 1).p2.world.y;
 }
 
 function rumbleWidth(projectedRoadWidth, lanes) {
@@ -146,13 +148,13 @@ function laneMarkerWidth(projectedRoadWidth, lanes) {
 const SEGMENT_BUFFER = 100;
 
 const segmentAdders = [
-  () => {
+  function () {
     addStraight(ROAD.LENGTH.SHORT / 2);
   },
-  () => {
+  function () {
     addCurve(ROAD.LENGTH.SHORT, ROAD.CURVE.MEDIUM, -ROAD.HILL.LOW);
   },
-  () => {
+  function () {
     addHill(ROAD.LENGTH.SHORT, ROAD.HILL.HIGH);
   },
 ];
@@ -162,11 +164,15 @@ const choose = (arr) => arr[Math.floor(Math.random() * arr.length)];
 function updateTrackIfNeeded() {
   const playerSegment = findSegment(pos);
 
+  console.log(this.segments.data.length);
   if (segments.length - playerSegment.index > drawDistance) {
     return;
   }
 
-  choose(segmentAdders)();
+  random(segmentAdders)();
   trackLength = segments.length * segmentLength;
-}
 
+  if (segments.length > 400) {
+    segments.cleanBehind(playerSegment.index);
+  }
+}

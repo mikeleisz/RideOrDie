@@ -13,7 +13,7 @@ var treeOffset = 0;
 var backgroundImage = null;
 var sprites = null;
 var resolution = null;
-var segments = [];
+var segments = new Buffer();
 var roadWidth = 2000;
 var segmentLength = 200;
 var rumbleLength = 4;
@@ -251,7 +251,7 @@ function render() {
   var segment;
 
   for (var i = 0; i < drawDistance; i++) {
-    segment = segments[(baseSegment.index + i) % segments.length];
+    segment = segments.get((baseSegment.index + i) % segments.length);
     segment.looped = segment.index < baseSegment.index;
     segment.fog = exponentialFog(i / drawDistance, fogDensity);
 
@@ -326,4 +326,3 @@ function render() {
   );
   updateTrackIfNeeded();
 }
-
