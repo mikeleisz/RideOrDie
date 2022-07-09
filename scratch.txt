@@ -1,0 +1,53 @@
+const SEGMENT_BUFFER = 100;
+
+const segmentAdders = [
+  () => {
+    addStraight(ROAD.LENGTH.SHORT / 2);
+  },
+  () => {
+    addCurve(ROAD.LENGTH.SHORT, ROAD.CURVE.MEDIUM, -ROAD.HILL.LOW);
+  },
+  () => {
+    addHill(ROAD.LENGTH.SHORT, ROAD.HILL.HIGH);
+  },
+];
+
+const choose = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+function updateTrackIfNeeded(pos) {
+  const playerSegment = findSegment(pos);
+  const truePlayerSegmentIdx = getSegmentIndexBySegmentIndex(
+    playerSegment.index
+  );
+  // console.log(segments.length - playerSegment.index);
+  // console.log(segments.length - truePlayerSegmentIdx, segments.length);
+
+  console.log(segments.length);
+  // const segment = segments[segments.length - 1];
+  if (segments.length - truePlayerSegmentIdx > drawDistance) {
+    return;
+  }
+
+  console.log("choosing");
+  console.log("!");
+  choose(segmentAdders)();
+  // console.log(pos, segments.length, playerSegment);
+
+  if (segments.length > 400) {
+    segments = segments.slice(truePlayerSegmentIdx - 1);
+    slicedOffset = playerSegment.index;
+  }
+  // if (segments.length > 500) {
+  //   const oldLength = segments.length;
+  //   segments = segments.slice(playerSegment.index - 1);
+  //   const newLength = segments.length;
+  //   const delta = oldLength - newLength;
+  //   pos -= (oldLength - newLength) * segmentLength;
+  //
+  //   segments.forEach((s, i) => {
+  //     s.index = i;
+  //     s.p1.world.z -= delta * segmentLength;
+  //     s.p2.world.z -= delta * segmentLength;
+  //   });
+  // }
+}
