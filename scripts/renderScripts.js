@@ -15,12 +15,6 @@ function renderBackground(bg, w, h, layer, rotation, offset) {
     var destY = offset;
     var destW = floor(w * (sourceW/imageW));
     var destH = h;
-    
-    //javascript
-    //drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)  
-  
-    //p5.js
-    //image(img, dx, dy, dWidth, dHeight, sx, sy, [sWidth], [sHeight])
 
     image(bg, destX, destY, destW, destH, sourceX, sourceY, sourceW, sourceH);
   
@@ -81,7 +75,7 @@ function renderSegment(segWidth, lanes, x1, y1, w1, x2, y2, w2, f, col) {
         lanex2 = x2 - w2 + lanew2;
         
         for (lane = 1; lane < lanes; lanex1 += lanew1, lanex2 += lanew2, lane++) {
-        polygon(lanex1 - l1/2, y1, lanex1 + l1/2, y1, lanex2 + l2/2, y2, lanex2 - l2/2, y2, col.lane);
+            polygon(lanex1 - l1/2, y1, lanex1 + l1/2, y1, lanex2 + l2/2, y2, lanex2 - l2/2, y2, col.lane);
         }
     }
 

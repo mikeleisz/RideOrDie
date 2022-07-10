@@ -34,6 +34,8 @@ var braking = -maxSpeed;
 var decel = -maxSpeed / 5;
 var offRoadDecel = -maxSpeed / 2;
 var offRoadLimit = maxSpeed / 4;
+var cars = [];
+var totalCars = 100;
 
 var keyLeft = false;
 var keyRight = false;
@@ -111,6 +113,7 @@ SPRITES.BILLBOARDS = [
   SPRITES.BILLBOARD08,
   SPRITES.BILLBOARD09,
 ];
+
 SPRITES.PLANTS = [
   SPRITES.TREE1,
   SPRITES.TREE2,
@@ -125,6 +128,7 @@ SPRITES.PLANTS = [
   SPRITES.BOULDER2,
   SPRITES.BOULDER3,
 ];
+
 SPRITES.CARS = [
   SPRITES.CAR01,
   SPRITES.CAR02,
@@ -141,13 +145,14 @@ var BACKGROUND = {
 };
 
 function preload() {
-  backgroundImage = loadImage("BeachTrackBackg.png");
-  sprites = loadImage("sprites.png");
+  backgroundImage = loadImage("../assets/BeachTrackBackg.png");
+  sprites = loadImage("../assets/sprites.png");
 }
 
 function setup() {
   createCanvas(512, 480);
   noStroke();
+  noSmooth();
 
   cameraDepth = 1.0 / tan(((fieldOfView / 2) * PI) / 180.0);
   playerZ = cameraHeight * cameraDepth;
@@ -158,8 +163,8 @@ function setup() {
 }
 
 function draw() {
-  render();
   updateGame();
+  renderGame();
 }
 
 function updateGame() {
@@ -220,16 +225,17 @@ function updateGame() {
     for (var i = 0; i < playerSegment.sprites.length; i++) {
       sprite = playerSegment.sprites[i];
       spriteW = sprite.source.w * SPRITES.SCALE;
-      if (
-        overlap(
-          playerX,
-          playerW,
-          sprite.offset + (spriteW / 2) * (sprite.offset > 0 ? 1 : -1),
-          spriteW
-        )
-      ) {
-        speed = maxSpeed / 5;
-        position = increase(playerSegment.p1.world.z, -playerZ, trackLength); // stop in front of sprite (at front of segment)
+
+      var didOverlap = overlap(
+        playerX,
+        playerW,
+        sprite.offset + (spriteW / 2) * (sprite.offset > 0 ? 1 : -1),
+        spriteW
+      );
+
+      if (didOverlap) {
+        spd = maxSpeed / 5;
+        pos = increase(playerSegment.p1.world.z, -playerZ, trackLength); // stop in front of sprite (at front of segment)
         break;
       }
     }
@@ -250,7 +256,7 @@ function accelerate(v, accel, dt) {
   return v + accel * dt;
 }
 
-function render() {
+function renderGame() {
   var baseSegment = findSegment(pos);
   var basePercent = percentRemaining(pos, segmentLength);
 
@@ -261,10 +267,13 @@ function render() {
     playerSegment.p2.world.y,
     playerPercent
   );
+
   var maxY = gameHeight;
 
   var dx = -(baseSegment.curve * basePercent);
   var x = 0;
+
+  var segment, car, sprite, spriteScale, spriteX, spriteY;
 
   background(COLORS.SKY);
 
@@ -272,13 +281,14 @@ function render() {
   //renderBackground(backgroundImage, gameWidth, gameHeight, BACKGROUND.HILLS, hillOffset, resolution * hillSpeed * playerY);
   //renderBackground(backgroundImage, gameWidth, gameHeight, BACKGROUND.TREES, treeOffset, resolution * treeSpeed * playerY);
 
-  var segment;
-
   for (var i = 0; i < drawDistance; i++) {
+
     segment = segments.get(baseSegment.index + i);
+
     if (!segment) {
       continue;
     }
+
     segment.looped = segment.index < baseSegment.index;
     segment.fog = exponentialFog(i / drawDistance, fogDensity);
     segment.clip = maxY;
@@ -293,6 +303,7 @@ function render() {
       gameHeight,
       roadWidth
     );
+
     project(
       segment.p2,
       playerX * roadWidth - x - dx,
@@ -332,18 +343,23 @@ function render() {
   }
 
   for (var i = drawDistance - 1; i > 0; i--) {
+
     segment = segments.get(baseSegment.index + i);
 
     if (!segment) {
       continue;
     }
+
     for (var j = 0; j < segment.sprites.length; j++) {
+
       sprite = segment.sprites[j];
       spriteScale = segment.p1.screen.scale;
+
       spriteX =
         segment.p1.screen.x +
         (spriteScale * sprite.offset * roadWidth * gameWidth) / 2;
       spriteY = segment.p1.screen.y;
+
       renderSprite(
         gameWidth,
         gameHeight,
@@ -360,7 +376,18 @@ function render() {
       );
     }
 
+    // render other cars
+    for (var j = 0 ; j < segment.cars.length ; j++) {
+      var car     = segment.cars[j];
+      sprite      = car.sprite;
+      spriteScale = interpolate(segment.p1.screen.scale, segment.p2.screen.scale, car.percent);
+      spriteX     = interpolate(segment.p1.screen.x,     segment.p2.screen.x,     car.percent) + (spriteScale * car.offset * roadWidth * gameWidth/2);
+      spriteY     = interpolate(segment.p1.screen.y,     segment.p2.screen.y,     car.percent);
+      renderSprite(gameWidth, gameHeight, resolution, roadWidth, sprites, car.sprite, spriteScale, spriteX, spriteY, -0.5, -1, segment.clip);
+    }
+
     if (segment == playerSegment) {
+      
       renderPlayer(
         gameWidth,
         gameHeight,
@@ -384,5 +411,6 @@ function render() {
       );
     }
   }
+  
   updateTrackIfNeeded();
 }

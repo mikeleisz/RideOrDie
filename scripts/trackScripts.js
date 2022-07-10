@@ -1,23 +1,26 @@
 function createTrack() {
   addStraight(ROAD.LENGTH.SHORT / 2);
-  // addHill(ROAD.LENGTH.SHORT, ROAD.HILL.LOW);
-  // addLowRollingHills();
-  // addCurve(ROAD.LENGTH.MEDIUM, ROAD.CURVE.MEDIUM, ROAD.HILL.LOW);
-  // addLowRollingHills();
-  // addCurve(ROAD.LENGTH.LONG, ROAD.CURVE.MEDIUM, ROAD.HILL.MEDIUM);
-  // addStraight();
-  // addCurve(ROAD.LENGTH.LONG, -ROAD.CURVE.MEDIUM, ROAD.HILL.MEDIUM);
-  // addHill(ROAD.LENGTH.LONG, ROAD.HILL.HIGH);
-  // addCurve(ROAD.LENGTH.LONG, ROAD.CURVE.MEDIUM, -ROAD.HILL.LOW);
-  // addHill(ROAD.LENGTH.LONG, -ROAD.HILL.MEDIUM);
-  // addStraight();
-  // addDownhillToEnd();
+  addHill(ROAD.LENGTH.SHORT, ROAD.HILL.LOW);
+  addLowRollingHills();
+  addCurve(ROAD.LENGTH.MEDIUM, ROAD.CURVE.MEDIUM, ROAD.HILL.LOW);
+  addLowRollingHills();
+  addCurve(ROAD.LENGTH.LONG, ROAD.CURVE.MEDIUM, ROAD.HILL.MEDIUM);
+  addStraight();
+  addCurve(ROAD.LENGTH.LONG, -ROAD.CURVE.MEDIUM, ROAD.HILL.MEDIUM);
+  addHill(ROAD.LENGTH.LONG, ROAD.HILL.HIGH);
+  addCurve(ROAD.LENGTH.LONG, ROAD.CURVE.MEDIUM, -ROAD.HILL.LOW);
+  addHill(ROAD.LENGTH.LONG, -ROAD.HILL.MEDIUM);
+  addStraight();
+  addDownhillToEnd();
 }
 
 function resetRoad() {
   segments.empty();
 
   createTrack();
+  resetCars();
+
+  print(cars);
 
   //commented lines below add finish and start line color to segments
 
@@ -34,17 +37,34 @@ function resetRoad() {
 
 function addSegment(curve, y) {
   var n = segments.length;
+
   segments.push({
     index: n,
-    p1: { world: { y: lastY(), z: n * segmentLength }, camera: {}, screen: {} },
-    p2: { world: { y: y, z: (n + 1) * segmentLength }, camera: {}, screen: {} },
+    p1: { world: { y: lastY(), z: n       * segmentLength }, camera: {}, screen: {} },
+    p2: { world: { y: y,       z: (n + 1) * segmentLength }, camera: {}, screen: {} },
     curve: curve,
     color: floor(n / rumbleLength) % 2 ? COLORS.DARK : COLORS.LIGHT,
     sprites: [],
+    cars: []
   });
 
   if (random() < 0.05) addSprite(n, SPRITES.TREE1, -1);
-  if (random() < 0.05) addSprite(n, SPRITES.TREE1, 1);
+  if (random() < 0.05) addSprite(n, SPRITES.TREE1,  1);
+}
+
+function resetCars() {
+    cars = [];
+    var car, segment, offset, z, sprite, carSpeed;
+    for (var n = 0 ; n < totalCars ; n++) {
+      offset = random() * randomChoice([-0.8, 0.8]);
+      z      = floor(random() * segments.length) * segmentLength;
+      sprite = randomChoice(SPRITES.CARS);
+      carSpeed  = maxSpeed/4 + random() * maxSpeed/(sprite == SPRITES.SEMI ? 4 : 2);
+      car = { offset: offset, z: z, sprite: sprite, speed: carSpeed };
+      segment = findSegment(car.z);
+      segment.cars.push(car);
+      cars.push(car);
+    }
 }
 
 function addSprite(n, sprite, offset) {
@@ -182,7 +202,7 @@ function updateTrackIfNeeded() {
     return;
   }
 
-  random(segmentAdders)();
+  random(segmentAdders)(); //pick and automatically call segment adder
   trackLength = segments.length * segmentLength;
 
   if (segments.length > 400) {
