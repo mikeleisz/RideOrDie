@@ -5,3 +5,10 @@ html, body {
 canvas {
   display: block;
 }
+@font-face {
+  font-family: 'Sysfont';
+  src: url('sysfont.woff2') format('woff2'),
+  url('sysfont.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}

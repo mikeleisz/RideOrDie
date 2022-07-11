@@ -5,7 +5,7 @@ class Buffer {
   constructor() {}
 
   get(idx) {
-    return this.data[idx - this.offset];
+    return this.data[(idx - this.offset)];
   }
 
   set(idx, obj) {
@@ -18,6 +18,10 @@ class Buffer {
 
   get length() {
     return this.data.length + this.offset;
+  }
+
+  get trueLength() {
+    return this.data.length;
   }
 
   empty() {

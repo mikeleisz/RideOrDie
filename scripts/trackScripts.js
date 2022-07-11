@@ -1,74 +1,80 @@
+function findSegment(z) {
+  return segments[floor(z / segmentLength) % segments.length];
+}
+
+function lastY() {
+  return segments.length == 0 ? 0 : segments[segments.length - 1].p2.world.y;
+}
+
 function createTrack() {
-  addStraight(ROAD.LENGTH.SHORT / 2);
+  addStraight(ROAD.LENGTH.LONG);
   addHill(ROAD.LENGTH.SHORT, ROAD.HILL.LOW);
-  addLowRollingHills();
-  addCurve(ROAD.LENGTH.MEDIUM, ROAD.CURVE.MEDIUM, ROAD.HILL.LOW);
-  addLowRollingHills();
-  addCurve(ROAD.LENGTH.LONG, ROAD.CURVE.MEDIUM, ROAD.HILL.MEDIUM);
-  addStraight();
-  addCurve(ROAD.LENGTH.LONG, -ROAD.CURVE.MEDIUM, ROAD.HILL.MEDIUM);
-  addHill(ROAD.LENGTH.LONG, ROAD.HILL.HIGH);
-  addCurve(ROAD.LENGTH.LONG, ROAD.CURVE.MEDIUM, -ROAD.HILL.LOW);
-  addHill(ROAD.LENGTH.LONG, -ROAD.HILL.MEDIUM);
-  addStraight();
-  addDownhillToEnd();
+  addHill(ROAD.LENGTH.SHORT, -ROAD.HILL.LOW);
+
+  // addLowRollingHills();
+  // addCurve(ROAD.LENGTH.MEDIUM, ROAD.CURVE.MEDIUM, ROAD.HILL.LOW);
+  // addLowRollingHills();
+  // addCurve(ROAD.LENGTH.LONG, ROAD.CURVE.MEDIUM, ROAD.HILL.MEDIUM);
+  // addStraight();
+  // addCurve(ROAD.LENGTH.LONG, -ROAD.CURVE.MEDIUM, ROAD.HILL.MEDIUM);
+  // addHill(ROAD.LENGTH.LONG, ROAD.HILL.HIGH);
+  // addCurve(ROAD.LENGTH.LONG, ROAD.CURVE.MEDIUM, -ROAD.HILL.LOW);
+  // addHill(ROAD.LENGTH.LONG, -ROAD.HILL.MEDIUM);
+  // addStraight();
+  // addDownhillToEnd();
 }
 
 function resetRoad() {
-  segments.empty();
+  segments = [];
 
   createTrack();
-  resetCars();
+  trackLength = segments.length * segmentLength;
 
-  print(cars);
+  resetCars();
 
   //commented lines below add finish and start line color to segments
 
   /*
-    segments[findSegment(playerZ).index + 2].color = COLORS.START;
-    segments[findSegment(playerZ).index + 3].color = COLORS.START;
-    
-    for(var i = 0 ; i < rumbleLength ; i++) 
-      segments[segments.length-1-i].color = COLORS.FINISH;
-    */
-
-  trackLength = segments.length * segmentLength;
+  segments[findSegment(playerZ).index + 2].color = COLORS.START;
+  segments[findSegment(playerZ).index + 3].color = COLORS.START;
+  
+  for(var i = 0 ; i < rumbleLength ; i++) 
+    segments[segments.length-1-i].color = COLORS.FINISH;
+  */
 }
 
 function addSegment(curve, y) {
   var n = segments.length;
+
+  var colorsLight = currentEnvironment.colors.LIGHT;
+  var colorsDark  = currentEnvironment.colors.DARK;
 
   segments.push({
     index: n,
     p1: { world: { y: lastY(), z: n       * segmentLength }, camera: {}, screen: {} },
     p2: { world: { y: y,       z: (n + 1) * segmentLength }, camera: {}, screen: {} },
     curve: curve,
-    color: floor(n / rumbleLength) % 2 ? COLORS.DARK : COLORS.LIGHT,
+    color: floor(n / rumbleLength) % 2 ? colorsDark : colorsLight,
     sprites: [],
     cars: []
   });
 
-  if (random() < 0.05) addSprite(n, SPRITES.TREE1, -1);
-  if (random() < 0.05) addSprite(n, SPRITES.TREE1,  1);
-}
+  var choices = randomChoice(currentEnvironment.obstacles);
+  if (random() < 0.01) addSprite(n, choices,  1 + random());
 
-function resetCars() {
-    cars = [];
-    var car, segment, offset, z, sprite, carSpeed;
-    for (var n = 0 ; n < totalCars ; n++) {
-      offset = random() * randomChoice([-0.8, 0.8]);
-      z      = floor(random() * segments.length) * segmentLength;
-      sprite = randomChoice(SPRITES.CARS);
-      carSpeed  = maxSpeed/4 + random() * maxSpeed/(sprite == SPRITES.SEMI ? 4 : 2);
-      car = { offset: offset, z: z, sprite: sprite, speed: carSpeed };
-      segment = findSegment(car.z);
-      segment.cars.push(car);
-      cars.push(car);
-    }
+  var choices = randomChoice(currentEnvironment.obstacles);
+  if (random() < 0.01) addSprite(n, choices,  -1 + -random());
+
+  var choices = randomChoice(currentEnvironment.obstacles);
+  if (random() < 0.01) addSprite(n, choices,  1 + random());
+
+  var choices = randomChoice(currentEnvironment.obstacles);
+  if (random() < 0.01) addSprite(n, choices,  -1 + -random());
 }
 
 function addSprite(n, sprite, offset) {
-  segments.get(n).sprites.push({ source: sprite, offset: offset });
+  var s = { source: sprite, offset: offset };
+  segments[n].sprites.push(s);
 }
 
 function addStraight(num) {
@@ -138,6 +144,17 @@ function addSCurves() {
   );
 }
 
+function addBumps() {
+  addRoad(10, 10, 10, 0,  5);
+  addRoad(10, 10, 10, 0, -2);
+  addRoad(10, 10, 10, 0, -5);
+  addRoad(10, 10, 10, 0,  8);
+  addRoad(10, 10, 10, 0,  5);
+  addRoad(10, 10, 10, 0, -7);
+  addRoad(10, 10, 10, 0,  5);
+  addRoad(10, 10, 10, 0, -2);
+}
+
 function addDownhillToEnd(num) {
   num = num || 200;
   addRoad(num, num, num, -ROAD.CURVE.EASY, -lastY() / segmentLength);
@@ -161,16 +178,6 @@ function addRoad(enter, hold, leave, curve, y) {
     );
 }
 
-function findSegment(z) {
-  return segments.get(floor(z / segmentLength));
-}
-
-function lastY() {
-  return segments.length == 0
-    ? 0
-    : segments.get(segments.length - 1).p2.world.y;
-}
-
 function rumbleWidth(projectedRoadWidth, lanes) {
   return projectedRoadWidth / max(6, 2 * lanes);
 }
@@ -183,29 +190,71 @@ const SEGMENT_BUFFER = 100;
 
 const segmentAdders = [
   function () {
-    addStraight(ROAD.LENGTH.SHORT / 2);
+    addStraight(ROAD.LENGTH.SHORT);
+  },
+  function () {
+    addStraight(ROAD.LENGTH.MEDIUM);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.SHORT);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.MEDIUM);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.LONG);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.SHORT, ROAD.CURVE.EASY);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.MEDIUM, ROAD.CURVE.EASY);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.LONG, ROAD.CURVE.EASY);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.SHORT, -ROAD.CURVE.MEDIUM);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.MEDIUM, -ROAD.CURVE.MEDIUM);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.LONG, -ROAD.CURVE.MEDIUM);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.SHORT, -ROAD.CURVE.EASY);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.MEDIUM, -ROAD.CURVE.EASY);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.LONG, -ROAD.CURVE.EASY);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.SHORT, ROAD.CURVE.MEDIUM, ROAD.HILL.LOW);
   },
   function () {
     addCurve(ROAD.LENGTH.SHORT, ROAD.CURVE.MEDIUM, -ROAD.HILL.LOW);
   },
   function () {
+    addCurve(ROAD.LENGTH.SHORT, -ROAD.CURVE.MEDIUM, ROAD.HILL.LOW);
+  },
+  function () {
+    addCurve(ROAD.LENGTH.SHORT, -ROAD.CURVE.MEDIUM, -ROAD.HILL.LOW);
+  },
+  function () {
+    addHill(ROAD.LENGTH.MEDIUM, -ROAD.HILL.MEDIUM);
+  },
+  function () {
     addHill(ROAD.LENGTH.SHORT, ROAD.HILL.HIGH);
   },
+  function () {
+    addSCurves();
+  },
+  function () {
+    addBumps();
+  }
 ];
 
 const choose = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-function updateTrackIfNeeded() {
-  const playerSegment = findSegment(pos);
-
-  if (segments.length - playerSegment.index > drawDistance) {
-    return;
-  }
-
-  random(segmentAdders)(); //pick and automatically call segment adder
-  trackLength = segments.length * segmentLength;
-
-  if (segments.length > 400) {
-    segments.cleanBehind(playerSegment.index);
-  }
-}
