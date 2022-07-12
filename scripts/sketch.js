@@ -411,16 +411,16 @@ function updateGame() {
   if (frameRate()) fps = frameRate();
   var dt = 1.0 / fps;
 
-  if (keyIsDown(LEFT_ARROW)) keyLeft = true;
+  if (keyIsDown(65)) keyLeft = true;
   else keyLeft = false;
 
-  if (keyIsDown(RIGHT_ARROW)) keyRight = true;
+  if (keyIsDown(68)) keyRight = true;
   else keyRight = false;
 
-  if (keyIsDown(UP_ARROW)) keyFaster = true;
+  if (keyIsDown(87)) keyFaster = true;
   else keyFaster = false;
 
-  if (keyIsDown(DOWN_ARROW)) keySlower = true;
+  if (keyIsDown(83)) keySlower = true;
   else keySlower = false;
 
   var playerSegment = findSegment(pos + playerZ);
